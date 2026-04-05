@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Brain, Target, AlertCircle, TrendingUp } from "lucide-react";
 import * as Slider from "@radix-ui/react-slider";
+import { useStore } from "@/store";
 
 export function Psychology() {
+  const saveDailyLog = useStore(state => state.saveDailyLog);
+  const dailyLogs = useStore(state => state.dailyLogs);
+  const today = new Date().toISOString().split('T')[0];
+  
   const [sliders, setSliders] = useState({
     confidence: 7,
     discipline: 8,
@@ -10,6 +15,31 @@ export function Psychology() {
     fomo: 3,
     stress: 4,
   });
+  
+  const [notes, setNotes] = useState("Tend to move stop loss to breakeven too early when anxious. Need to trust the original invalidation level.");
+
+  useEffect(() => {
+    const todayLog = dailyLogs.find(l => l.date === today);
+    if (todayLog) {
+      setSliders({
+        confidence: todayLog.confidence,
+        discipline: todayLog.discipline,
+        patience: todayLog.patience,
+        fomo: todayLog.fomo,
+        stress: todayLog.stress,
+      });
+      setNotes(todayLog.notes);
+    }
+  }, [dailyLogs, today]);
+
+  const handleSave = () => {
+    saveDailyLog({
+      date: today,
+      ...sliders,
+      notes
+    });
+    alert("Daily log saved successfully!");
+  };
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
@@ -76,7 +106,10 @@ export function Psychology() {
           </div>
           
           <div className="mt-8 flex justify-end">
-            <button className="bg-surface hover:bg-surface-hover border border-border text-text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button 
+              onClick={handleSave}
+              className="bg-surface hover:bg-surface-hover border border-border text-text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
               Save Daily Log
             </button>
           </div>
@@ -91,7 +124,8 @@ export function Psychology() {
           <textarea 
             className="flex-1 bg-surface border border-border rounded-lg p-3 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none"
             placeholder="E.g., Revenge trading after 2 consecutive losses..."
-            defaultValue="Tend to move stop loss to breakeven too early when anxious. Need to trust the original invalidation level."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           />
         </div>
       </div>

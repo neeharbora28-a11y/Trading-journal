@@ -61,7 +61,10 @@ export function Sidebar({
       </nav>
 
       <div className="p-3 border-t border-border">
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors">
+        <button 
+          onClick={() => alert("Settings panel coming soon!")}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
+        >
           <Settings size={18} className="text-text-muted" />
           Settings
         </button>

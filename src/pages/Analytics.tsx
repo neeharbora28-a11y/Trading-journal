@@ -1,34 +1,65 @@
+import { useState, useMemo } from "react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Sector,
   LineChart, Line
 } from "recharts";
-
-const pairPerformance = [
-  { name: "GBP/JPY", win: 4500, loss: 1200 },
-  { name: "EUR/USD", win: 3200, loss: 2100 },
-  { name: "XAU/USD", win: 5600, loss: 4800 },
-  { name: "USD/JPY", win: 1500, loss: 800 },
-];
-
-const setupPerformance = [
-  { name: "Break & Retest", value: 45 },
-  { name: "Trend Cont.", value: 30 },
-  { name: "Liquidity Sweep", value: 15 },
-  { name: "Reversal", value: 10 },
-];
+import { cn } from "@/lib/utils";
+import { useStore } from "@/store";
 
 const COLORS = ['var(--color-accent)', '#818cf8', '#a5b4fc', '#c7d2fe'];
 
-const emotionPerformance = [
-  { emotion: "Confident", pl: 2500 },
-  { emotion: "Patient", pl: 1800 },
-  { emotion: "Neutral", pl: 400 },
-  { emotion: "Anxious", pl: -800 },
-  { emotion: "FOMO", pl: -1500 },
-];
-
 export function Analytics() {
+  const [timeRange, setTimeRange] = useState("All Time");
+  const trades = useStore(state => state.trades);
+
+  const filteredTrades = useMemo(() => {
+    const now = new Date();
+    return trades.filter(t => {
+      if (timeRange === "All Time") return true;
+      const tradeDate = new Date(t.date);
+      if (timeRange === "This Month") {
+        return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === now.getFullYear();
+      }
+      if (timeRange === "Last Month") {
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return tradeDate.getMonth() === lastMonth.getMonth() && tradeDate.getFullYear() === lastMonth.getFullYear();
+      }
+      return true;
+    });
+  }, [trades, timeRange]);
+
+  const pairPerformance = useMemo(() => {
+    const data: Record<string, { name: string, win: number, loss: number }> = {};
+    filteredTrades.forEach(t => {
+      if (!data[t.pair]) data[t.pair] = { name: t.pair, win: 0, loss: 0 };
+      if (t.result > 0) data[t.pair].win += t.result;
+      else data[t.pair].loss += Math.abs(t.result);
+    });
+    return Object.values(data);
+  }, [filteredTrades]);
+
+  const setupPerformance = useMemo(() => {
+    const data: Record<string, number> = {};
+    filteredTrades.forEach(t => {
+      data[t.setup] = (data[t.setup] || 0) + 1;
+    });
+    const total = filteredTrades.length || 1;
+    return Object.entries(data).map(([name, count]) => ({
+      name,
+      value: Math.round((count / total) * 100)
+    }));
+  }, [filteredTrades]);
+
+  const emotionPerformance = useMemo(() => {
+    const data: Record<string, { emotion: string, pl: number }> = {};
+    filteredTrades.forEach(t => {
+      if (!data[t.emotion]) data[t.emotion] = { emotion: t.emotion, pl: 0 };
+      data[t.emotion].pl += t.result;
+    });
+    return Object.values(data);
+  }, [filteredTrades]);
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -37,9 +68,18 @@ export function Analytics() {
           <p className="text-sm text-text-secondary">Deep dive into your trading performance.</p>
         </div>
         <div className="flex bg-surface border border-border rounded-lg p-1">
-          <button className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary rounded">This Month</button>
-          <button className="px-3 py-1 text-sm bg-surface-hover text-text-primary rounded shadow-sm">Last Month</button>
-          <button className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary rounded">All Time</button>
+          {["This Month", "Last Month", "All Time"].map(range => (
+            <button 
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={cn(
+                "px-3 py-1 text-sm rounded transition-colors",
+                timeRange === range ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              {range}
+            </button>
+          ))}
         </div>
       </div>
 

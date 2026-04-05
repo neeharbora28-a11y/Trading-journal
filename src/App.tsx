@@ -29,8 +29,8 @@ export default function App() {
           {activePage === "analytics" && <Analytics />}
           {activePage === "psychology" && <Psychology />}
           {activePage === "setups" && <SetupLibrary />}
-          {activePage === "calendar" && <Calendar />}
-          {activePage === "trades" && <div className="p-8 text-text-secondary">Trades view coming soon...</div>}
+          {activePage === "calendar" && <Calendar setActivePage={setActivePage} />}
+          {activePage === "trades" && <Journal />}
         </main>
       </div>
     </div>

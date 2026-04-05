@@ -1,38 +1,48 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, TrendingUp, TrendingDown, Activity, Target, Plus } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/store";
 
-// Mock data for the calendar
-const mockDailyData: Record<string, { pnl: number, trades: number, winRate: number, setups: string[] }> = {
-  '2026-04-01': { pnl: 120.50, trades: 2, winRate: 50, setups: ['Break & Retest'] },
-  '2026-04-02': { pnl: -45.00, trades: 1, winRate: 0, setups: ['Liquidity Sweep'] },
-  '2026-04-03': { pnl: 340.00, trades: 3, winRate: 66, setups: ['Trend Continuation', 'Break & Retest'] },
-  '2026-04-06': { pnl: -120.00, trades: 2, winRate: 0, setups: ['Reversal'] },
-  '2026-04-08': { pnl: 550.00, trades: 4, winRate: 75, setups: ['Break & Retest'] },
-  '2026-04-14': { pnl: 210.00, trades: 2, winRate: 100, setups: ['Trend Continuation'] },
-  '2026-04-15': { pnl: -80.00, trades: 3, winRate: 33, setups: ['Liquidity Sweep'] },
-  '2026-04-17': { pnl: 420.00, trades: 2, winRate: 100, setups: ['Break & Retest'] },
-  '2026-04-21': { pnl: -150.00, trades: 2, winRate: 0, setups: ['Trend Continuation'] },
-  '2026-04-23': { pnl: 890.00, trades: 3, winRate: 100, setups: ['Liquidity Sweep', 'Break & Retest'] },
-};
+export function Calendar({ setActivePage }: { setActivePage?: (page: string) => void }) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const trades = useStore(state => state.trades);
 
-export function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 5)); // Default to April 2026
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 3, 3));
+  const setTradeModalOpen = useStore(state => state.setTradeModalOpen);
+
+  const dailyData = useMemo(() => {
+    const data: Record<string, { pnl: number, trades: number, winRate: number, setups: string[], wins: number }> = {};
+    
+    trades.forEach(trade => {
+      if (!data[trade.date]) {
+        data[trade.date] = { pnl: 0, trades: 0, winRate: 0, setups: [], wins: 0 };
+      }
+      const day = data[trade.date];
+      day.pnl += trade.result;
+      day.trades += 1;
+      if (trade.result > 0) day.wins += 1;
+      if (!day.setups.includes(trade.setup)) {
+        day.setups.push(trade.setup);
+      }
+      day.winRate = Math.round((day.wins / day.trades) * 100);
+    });
+    
+    return data;
+  }, [trades]);
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
   // Calculate monthly stats
-  const currentMonthData = Object.entries(mockDailyData).filter(([dateStr]) => {
+  const currentMonthData = Object.entries(dailyData).filter(([dateStr]) => {
     const d = parseISO(dateStr);
     return isSameMonth(d, currentDate);
   });
   
-  const monthlyPnl = currentMonthData.reduce((sum, [_, data]) => sum + data.pnl, 0);
-  const monthlyTrades = currentMonthData.reduce((sum, [_, data]) => sum + data.trades, 0);
-  const winningDays = currentMonthData.filter(([_, data]) => data.pnl > 0).length;
+  const monthlyPnl = currentMonthData.reduce((sum, [_, data]: [string, any]) => sum + data.pnl, 0);
+  const monthlyTrades = currentMonthData.reduce((sum, [_, data]: [string, any]) => sum + data.trades, 0);
+  const winningDays = currentMonthData.filter(([_, data]: [string, any]) => data.pnl > 0).length;
   const totalDaysTraded = currentMonthData.length;
   const winRate = totalDaysTraded > 0 ? Math.round((winningDays / totalDaysTraded) * 100) : 0;
 
@@ -55,7 +65,7 @@ export function Calendar() {
       formattedDate = format(day, dateFormat);
       const cloneDay = day;
       const dateKey = format(day, 'yyyy-MM-dd');
-      const dayData = mockDailyData[dateKey];
+      const dayData = dailyData[dateKey];
       const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
 
       days.push(
@@ -71,8 +81,8 @@ export function Calendar() {
           <div className="flex justify-between items-start">
             <span className={cn(
               "text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full",
-              isSameDay(day, new Date(2026, 3, 5)) && "bg-accent text-white", // Highlight "today"
-              isSelected && !isSameDay(day, new Date(2026, 3, 5)) && "text-accent"
+              isSameDay(day, new Date()) && "bg-accent text-white", // Highlight "today"
+              isSelected && !isSameDay(day, new Date()) && "text-accent"
             )}>
               {formattedDate}
             </span>
@@ -114,7 +124,7 @@ export function Calendar() {
   }
 
   const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
-  const selectedDayData = selectedDateKey ? mockDailyData[selectedDateKey] : null;
+  const selectedDayData = selectedDateKey ? dailyData[selectedDateKey] : null;
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -248,7 +258,10 @@ export function Calendar() {
                   </div>
                   
                   <div className="mt-auto pt-6">
-                    <button className="w-full bg-surface hover:bg-surface-hover border border-border text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => setActivePage && setActivePage("journal")}
+                      className="w-full bg-surface hover:bg-surface-hover border border-border text-text-primary py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
                       View Trades
                     </button>
                   </div>
@@ -260,7 +273,10 @@ export function Calendar() {
                   </div>
                   <p className="text-text-primary font-medium mb-1">No Activity</p>
                   <p className="text-sm text-text-secondary mb-6">You didn't log any trades on this day.</p>
-                  <button className="flex items-center gap-2 text-sm text-accent hover:text-indigo-400 font-medium transition-colors">
+                  <button 
+                    onClick={() => setTradeModalOpen(true)}
+                    className="flex items-center gap-2 text-sm text-accent hover:text-indigo-400 font-medium transition-colors"
+                  >
                     <Plus size={16} /> Log a Trade
                   </button>
                 </div>

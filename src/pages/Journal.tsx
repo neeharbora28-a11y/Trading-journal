@@ -2,51 +2,18 @@ import { useState } from "react";
 import { Filter, ChevronDown, ArrowUpRight, ArrowDownRight, Image as ImageIcon, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
-
-const mockTrades = [
-  {
-    id: "1",
-    pair: "GBP/JPY",
-    direction: "long",
-    setup: "Break & Retest",
-    entryTime: "10:30 AM",
-    date: "Today",
-    result: 320.50,
-    rr: "1:2.5",
-    emotion: "Confident",
-    notes: "Waited for the 15m candle to close above the key level. Perfect execution.",
-    hasScreenshot: true,
-  },
-  {
-    id: "2",
-    pair: "EUR/USD",
-    direction: "short",
-    setup: "Liquidity Sweep",
-    entryTime: "08:15 AM",
-    date: "Today",
-    result: -150.00,
-    rr: "1:1",
-    emotion: "FOMO",
-    notes: "Entered too early before the sweep was confirmed. Need to wait for the close.",
-    hasScreenshot: false,
-  },
-  {
-    id: "3",
-    pair: "XAU/USD",
-    direction: "long",
-    setup: "Trend Continuation",
-    entryTime: "02:45 PM",
-    date: "Yesterday",
-    result: 850.00,
-    rr: "1:4",
-    emotion: "Patient",
-    notes: "Held through the pullback. Trailed stop loss perfectly.",
-    hasScreenshot: true,
-  }
-];
+import { useStore } from "@/store";
 
 export function Journal() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"All" | "Wins" | "Losses">("All");
+  const trades = useStore(state => state.trades);
+
+  const filteredTrades = trades.filter(trade => {
+    if (activeTab === "Wins") return trade.result > 0;
+    if (activeTab === "Losses") return trade.result <= 0;
+    return true;
+  });
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
@@ -57,20 +24,38 @@ export function Journal() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition-colors">
+          <button 
+            onClick={() => alert("Filters modal coming soon!")}
+            className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition-colors"
+          >
             <Filter size={16} />
             Filters
           </button>
           <div className="flex bg-surface border border-border rounded-lg p-1">
-            <button className="px-3 py-1 text-sm bg-surface-hover text-text-primary rounded shadow-sm">All</button>
-            <button className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary rounded">Wins</button>
-            <button className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary rounded">Losses</button>
+            <button 
+              onClick={() => setActiveTab("All")}
+              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "All" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+            >
+              All
+            </button>
+            <button 
+              onClick={() => setActiveTab("Wins")}
+              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "Wins" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+            >
+              Wins
+            </button>
+            <button 
+              onClick={() => setActiveTab("Losses")}
+              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "Losses" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+            >
+              Losses
+            </button>
           </div>
         </div>
       </div>
 
       <div className="space-y-8 relative before:absolute before:inset-0 before:ml-6 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-        {mockTrades.map((trade) => (
+        {filteredTrades.map((trade) => (
           <div key={trade.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
             {/* Timeline dot */}
             <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-surface shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">

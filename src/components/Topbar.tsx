@@ -1,16 +1,40 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Search, Plus, Moon, Sun, ChevronDown, Check } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TradeEntryModal } from "./TradeEntryModal";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/store";
 
 export function Topbar() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isModalOpen = useStore(state => state.isTradeModalOpen);
+  const setIsModalOpen = useStore(state => state.setTradeModalOpen);
   const [selectedAccount, setSelectedAccount] = useState("Main Account");
   const [selectedDateRange, setSelectedDateRange] = useState("This Week");
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const accounts = ["Main Account", "Prop Firm Challenge", "Crypto Portfolio"];
   const dateRanges = ["Today", "This Week", "This Month", "This Year", "All Time"];
+
+  const handleAccountChange = (account: string) => {
+    setSelectedAccount(account);
+    alert(`Switched to ${account}`);
+  };
+
+  const handleDateRangeChange = (range: string) => {
+    setSelectedDateRange(range);
+    alert(`Date range set to ${range}`);
+  };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      alert(`Searching for: ${e.currentTarget.value}`);
+    }
+  };
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    alert(`Theme toggled to ${!isDarkMode ? 'Dark' : 'Light'} mode!`);
+  };
 
   return (
     <>
@@ -31,7 +55,7 @@ export function Topbar() {
                 {accounts.map(account => (
                   <DropdownMenu.Item 
                     key={account}
-                    onClick={() => setSelectedAccount(account)}
+                    onClick={() => handleAccountChange(account)}
                     className="flex items-center justify-between px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
                   >
                     {account}
@@ -39,7 +63,10 @@ export function Topbar() {
                   </DropdownMenu.Item>
                 ))}
                 <DropdownMenu.Separator className="h-px bg-border my-1" />
-                <DropdownMenu.Item className="px-3 py-2 text-sm text-accent hover:text-indigo-400 hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors">
+                <DropdownMenu.Item 
+                  onClick={() => alert("Add New Account modal coming soon!")}
+                  className="px-3 py-2 text-sm text-accent hover:text-indigo-400 hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
+                >
                   + Add New Account
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
@@ -51,6 +78,7 @@ export function Topbar() {
             <input 
               type="text" 
               placeholder="Search trades, pairs..." 
+              onKeyDown={handleSearch}
               className="bg-surface border border-border rounded-full pl-9 pr-4 py-1.5 text-sm w-64 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
             />
           </div>
@@ -73,7 +101,7 @@ export function Topbar() {
                 {dateRanges.map(range => (
                   <DropdownMenu.Item 
                     key={range}
-                    onClick={() => setSelectedDateRange(range)}
+                    onClick={() => handleDateRangeChange(range)}
                     className="flex items-center justify-between px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
                   >
                     {range}
@@ -84,8 +112,11 @@ export function Topbar() {
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
 
-          <button className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-surface hover:text-text-primary transition-colors">
-            <Sun size={18} />
+          <button 
+            onClick={toggleTheme}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-surface hover:text-text-primary transition-colors"
+          >
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           <button 
