@@ -40,12 +40,18 @@ interface AppState {
   setups: Setup[];
   dailyLogs: DailyLog[];
   isTradeModalOpen: boolean;
+  selectedAccount: string;
+  selectedDateRange: string;
+  isLoading: boolean;
   addTrade: (trade: Omit<Trade, 'id'>) => void;
   updateTrade: (id: string, trade: Partial<Trade>) => void;
   deleteTrade: (id: string) => void;
   addSetup: (setup: Omit<Setup, 'id'>) => void;
   saveDailyLog: (log: DailyLog) => void;
   setTradeModalOpen: (isOpen: boolean) => void;
+  setSelectedAccount: (account: string) => void;
+  setSelectedDateRange: (range: string) => void;
+  setIsLoading: (loading: boolean) => void;
 }
 
 const initialSetups: Setup[] = [
@@ -139,6 +145,9 @@ export const useStore = create<AppState>()(
       setups: initialSetups,
       dailyLogs: [],
       isTradeModalOpen: false,
+      selectedAccount: "Main Account",
+      selectedDateRange: "This Week",
+      isLoading: false,
       
       addTrade: (trade) => set((state) => ({ 
         trades: [{ ...trade, id: Date.now().toString() }, ...state.trades] 
@@ -167,6 +176,9 @@ export const useStore = create<AppState>()(
       }),
 
       setTradeModalOpen: (isOpen) => set({ isTradeModalOpen: isOpen }),
+      setSelectedAccount: (account) => set({ selectedAccount: account }),
+      setSelectedDateRange: (range) => set({ selectedDateRange: range }),
+      setIsLoading: (loading) => set({ isLoading: loading }),
     }),
     {
       name: 'fx-journal-storage',

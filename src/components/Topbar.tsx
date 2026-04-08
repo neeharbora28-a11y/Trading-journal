@@ -4,12 +4,15 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TradeEntryModal } from "./TradeEntryModal";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
+import { toast } from "sonner";
 
 export function Topbar() {
   const isModalOpen = useStore(state => state.isTradeModalOpen);
   const setIsModalOpen = useStore(state => state.setTradeModalOpen);
-  const [selectedAccount, setSelectedAccount] = useState("Main Account");
-  const [selectedDateRange, setSelectedDateRange] = useState("This Week");
+  const selectedAccount = useStore(state => state.selectedAccount);
+  const setSelectedAccount = useStore(state => state.setSelectedAccount);
+  const selectedDateRange = useStore(state => state.selectedDateRange);
+  const setSelectedDateRange = useStore(state => state.setSelectedDateRange);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const accounts = ["Main Account", "Prop Firm Challenge", "Crypto Portfolio"];
@@ -17,23 +20,21 @@ export function Topbar() {
 
   const handleAccountChange = (account: string) => {
     setSelectedAccount(account);
-    alert(`Switched to ${account}`);
   };
 
   const handleDateRangeChange = (range: string) => {
     setSelectedDateRange(range);
-    alert(`Date range set to ${range}`);
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      alert(`Searching for: ${e.currentTarget.value}`);
+      toast.info(`Searching for: ${e.currentTarget.value}`);
     }
   };
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    alert(`Theme toggled to ${!isDarkMode ? 'Dark' : 'Light'} mode!`);
+    toast.success(`Theme toggled to ${!isDarkMode ? 'Dark' : 'Light'} mode!`);
   };
 
   return (
@@ -64,7 +65,7 @@ export function Topbar() {
                 ))}
                 <DropdownMenu.Separator className="h-px bg-border my-1" />
                 <DropdownMenu.Item 
-                  onClick={() => alert("Add New Account modal coming soon!")}
+                  onClick={() => toast.info("Add New Account modal coming soon!")}
                   className="px-3 py-2 text-sm text-accent hover:text-indigo-400 hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
                 >
                   + Add New Account

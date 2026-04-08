@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Sector,
   LineChart, Line
 } from "recharts";
+import { BarChart as BarChartIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 
@@ -59,6 +60,43 @@ export function Analytics() {
     });
     return Object.values(data);
   }, [filteredTrades]);
+
+  if (filteredTrades.length === 0) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Analytics</h1>
+            <p className="text-sm text-text-secondary">Deep dive into your trading performance.</p>
+          </div>
+          <div className="flex bg-surface border border-border rounded-lg p-1">
+            {["This Month", "Last Month", "All Time"].map(range => (
+              <button 
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={cn(
+                  "px-3 py-1 text-sm rounded transition-colors",
+                  timeRange === range ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
+                )}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="h-[60vh] flex flex-col items-center justify-center text-center glass-panel">
+          <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center text-text-muted mb-6">
+            <BarChartIcon size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-text-primary mb-2">Not Enough Data</h2>
+          <p className="text-text-secondary max-w-md">
+            There are no trades logged for the selected time range. Log more trades to see your performance analytics.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">

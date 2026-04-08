@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { Dashboard } from "./pages/Dashboard";
@@ -12,27 +14,54 @@ import { Analytics } from "./pages/Analytics";
 import { Psychology } from "./pages/Psychology";
 import { SetupLibrary } from "./pages/SetupLibrary";
 import { Calendar } from "./pages/Calendar";
+import { useStore } from "./store";
+import { Loader2 } from "lucide-react";
 
 export default function App() {
-  const [activePage, setActivePage] = useState("dashboard");
+  const [isAppLoading, setIsAppLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial data fetching
+    const timer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isAppLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-text-muted">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+          <p className="text-sm font-medium">Loading your journal...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
-      
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
-        <Topbar />
+    <>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
         
-        <main className="flex-1 overflow-y-auto pb-12">
-          {activePage === "dashboard" && <Dashboard />}
-          {activePage === "journal" && <Journal />}
-          {activePage === "analytics" && <Analytics />}
-          {activePage === "psychology" && <Psychology />}
-          {activePage === "setups" && <SetupLibrary />}
-          {activePage === "calendar" && <Calendar setActivePage={setActivePage} />}
-          {activePage === "trades" && <Journal />}
-        </main>
+        <div className="flex-1 ml-64 flex flex-col min-h-screen">
+          <Topbar />
+          
+          <main className="flex-1 overflow-y-auto pb-12">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/trades" element={<Journal />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/psychology" element={<Psychology />} />
+              <Route path="/setups" element={<SetupLibrary />} />
+              <Route path="/calendar" element={<Calendar />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+      <Toaster position="bottom-right" theme="dark" />
+    </>
   );
 }

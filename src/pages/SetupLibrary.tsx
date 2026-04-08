@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Search, Image as ImageIcon, Target, Activity, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
+import { toast } from "sonner";
 
 export function SetupLibrary() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -24,7 +25,7 @@ export function SetupLibrary() {
           <p className="text-sm text-text-secondary">Define and catalog your high-probability trading patterns.</p>
         </div>
         <button 
-          onClick={() => alert("New Setup modal coming soon!")}
+          onClick={() => toast.info("New Setup modal coming soon!")}
           className="bg-accent hover:bg-indigo-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-lg shadow-accent/20"
         >
           <Plus size={16} />

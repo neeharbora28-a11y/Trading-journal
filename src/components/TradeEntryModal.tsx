@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Upload, Calculator, ArrowRight, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useStore } from "@/store";
+import { toast } from "sonner";
 
 export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const addTrade = useStore(state => state.addTrade);
@@ -58,7 +59,7 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
       hasScreenshot: false,
     });
 
-    alert("Trade saved successfully!");
+    toast.success("Trade saved successfully!");
     onOpenChange(false);
     // Reset form after modal closes
     setTimeout(() => {
@@ -68,6 +69,23 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
       });
     }, 300);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!open) return;
+      if (e.key === 'Enter' && canProceed()) {
+        e.preventDefault();
+        if (step < 4) {
+          setStep(s => s + 1);
+        } else {
+          handleSave();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, step, canProceed]);
 
   // Live Risk Calculator Logic
   const entry = parseFloat(formData.entryPrice);

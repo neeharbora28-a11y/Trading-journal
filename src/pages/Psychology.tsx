@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Brain, Target, AlertCircle, TrendingUp } from "lucide-react";
 import * as Slider from "@radix-ui/react-slider";
 import { useStore } from "@/store";
+import { toast } from "sonner";
 
 export function Psychology() {
   const saveDailyLog = useStore(state => state.saveDailyLog);
@@ -38,7 +39,7 @@ export function Psychology() {
       ...sliders,
       notes
     });
-    alert("Daily log saved successfully!");
+    toast.success("Daily log saved successfully!");
   };
 
   return (

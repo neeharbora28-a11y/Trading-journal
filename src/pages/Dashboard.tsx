@@ -48,6 +48,26 @@ export function Dashboard() {
 
   const currentBalance = equityData[equityData.length - 1].value;
 
+  if (trades.length === 0) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto h-[80vh] flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center text-text-muted mb-6">
+          <Activity size={32} />
+        </div>
+        <h2 className="text-2xl font-bold text-text-primary mb-2">Welcome to FX Journal</h2>
+        <p className="text-text-secondary max-w-md mb-8">
+          You haven't logged any trades yet. Start tracking your performance by adding your first trade.
+        </p>
+        <button 
+          onClick={() => useStore.getState().setTradeModalOpen(true)}
+          className="bg-accent hover:bg-indigo-400 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-lg shadow-accent/20"
+        >
+          Log Your First Trade
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Today's Snapshot */}

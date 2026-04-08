@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, TrendingUp, TrendingDown, Activity, Target, Plus } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays, parseISO } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 
-export function Calendar({ setActivePage }: { setActivePage?: (page: string) => void }) {
+export function Calendar() {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const trades = useStore(state => state.trades);
@@ -259,7 +261,7 @@ export function Calendar({ setActivePage }: { setActivePage?: (page: string) => 
                   
                   <div className="mt-auto pt-6">
                     <button 
-                      onClick={() => setActivePage && setActivePage("journal")}
+                      onClick={() => navigate("/journal")}
                       className="w-full bg-surface hover:bg-surface-hover border border-border text-text-primary py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       View Trades
