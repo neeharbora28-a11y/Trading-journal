@@ -22,11 +22,11 @@ const navItems = [
   { id: "psychology", label: "Psychology", icon: BrainCircuit },
 ];
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 h-screen border-r border-border bg-surface flex flex-col fixed left-0 top-0">
+    <aside className={cn("w-64 h-screen border-r border-border bg-surface flex flex-col fixed left-0 top-0", className)}>
       <div className="h-16 flex items-center px-6 border-b border-border">
         <div className="flex items-center gap-2 text-accent font-bold text-lg tracking-tight">
           <div className="w-6 h-6 rounded bg-accent flex items-center justify-center text-white">

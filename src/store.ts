@@ -1,8 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface Account {
+  id: string;
+  name: string;
+  startingBalance: number;
+  createdAt: string;
+}
+
 export interface Trade {
   id: string;
+  accountId: string;
   pair: string;
   direction: 'long' | 'short';
   setup: string;
@@ -13,6 +21,7 @@ export interface Trade {
   emotion: string;
   notes: string;
   hasScreenshot: boolean;
+  timestamp: number;
 }
 
 export interface Setup {
@@ -36,20 +45,23 @@ export interface DailyLog {
 }
 
 interface AppState {
+  accounts: Account[];
   trades: Trade[];
   setups: Setup[];
   dailyLogs: DailyLog[];
   isTradeModalOpen: boolean;
-  selectedAccount: string;
+  selectedAccountId: string;
   selectedDateRange: string;
   isLoading: boolean;
+  addAccount: (account: Omit<Account, 'id' | 'createdAt'>) => void;
+  deleteAccount: (id: string) => void;
   addTrade: (trade: Omit<Trade, 'id'>) => void;
   updateTrade: (id: string, trade: Partial<Trade>) => void;
   deleteTrade: (id: string) => void;
   addSetup: (setup: Omit<Setup, 'id'>) => void;
   saveDailyLog: (log: DailyLog) => void;
   setTradeModalOpen: (isOpen: boolean) => void;
-  setSelectedAccount: (account: string) => void;
+  setSelectedAccountId: (accountId: string) => void;
   setSelectedDateRange: (range: string) => void;
   setIsLoading: (loading: boolean) => void;
 }
@@ -96,59 +108,48 @@ const initialSetups: Setup[] = [
   }
 ];
 
-const initialTrades: Trade[] = [
+const initialAccounts: Account[] = [
   {
-    id: "1",
-    pair: "GBP/JPY",
-    direction: "long",
-    setup: "Break & Retest",
-    entryTime: "10:30 AM",
-    date: new Date().toISOString().split('T')[0],
-    result: 320.50,
-    rr: "1:2.5",
-    emotion: "Confident",
-    notes: "Waited for the 15m candle to close above the key level. Perfect execution.",
-    hasScreenshot: true,
-  },
-  {
-    id: "2",
-    pair: "EUR/USD",
-    direction: "short",
-    setup: "Liquidity Sweep",
-    entryTime: "08:15 AM",
-    date: new Date().toISOString().split('T')[0],
-    result: -150.00,
-    rr: "1:1",
-    emotion: "FOMO",
-    notes: "Entered too early before the sweep was confirmed. Need to wait for the close.",
-    hasScreenshot: false,
-  },
-  {
-    id: "3",
-    pair: "XAU/USD",
-    direction: "long",
-    setup: "Trend Continuation",
-    entryTime: "02:45 PM",
-    date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-    result: 850.00,
-    rr: "1:4",
-    emotion: "Patient",
-    notes: "Held through the pullback. Trailed stop loss perfectly.",
-    hasScreenshot: true,
+    id: "default-account",
+    name: "Main Account",
+    startingBalance: 10000,
+    createdAt: new Date().toISOString()
   }
 ];
 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
-      trades: initialTrades,
+      accounts: initialAccounts,
+      trades: [],
       setups: initialSetups,
       dailyLogs: [],
       isTradeModalOpen: false,
-      selectedAccount: "Main Account",
+      selectedAccountId: "default-account",
       selectedDateRange: "This Week",
       isLoading: false,
       
+      addAccount: (account) => set((state) => {
+        const newAccount = {
+          ...account,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString()
+        };
+        return {
+          accounts: [...state.accounts, newAccount],
+          selectedAccountId: newAccount.id
+        };
+      }),
+
+      deleteAccount: (id) => set((state) => {
+        const newAccounts = state.accounts.filter(a => a.id !== id);
+        return {
+          accounts: newAccounts,
+          selectedAccountId: newAccounts.length > 0 ? newAccounts[0].id : "",
+          trades: state.trades.filter(t => t.accountId !== id)
+        };
+      }),
+
       addTrade: (trade) => set((state) => ({ 
         trades: [{ ...trade, id: Date.now().toString() }, ...state.trades] 
       })),
@@ -176,7 +177,7 @@ export const useStore = create<AppState>()(
       }),
 
       setTradeModalOpen: (isOpen) => set({ isTradeModalOpen: isOpen }),
-      setSelectedAccount: (account) => set({ selectedAccount: account }),
+      setSelectedAccountId: (accountId) => set({ selectedAccountId: accountId }),
       setSelectedDateRange: (range) => set({ selectedDateRange: range }),
       setIsLoading: (loading) => set({ isLoading: loading }),
     }),

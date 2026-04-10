@@ -9,7 +9,10 @@ export function Calendar() {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const trades = useStore(state => state.trades);
+  const allTrades = useStore(state => state.trades);
+  const selectedAccountId = useStore(state => state.selectedAccountId);
+  
+  const trades = allTrades.filter(t => t.accountId === selectedAccountId);
 
   const setTradeModalOpen = useStore(state => state.setTradeModalOpen);
 
@@ -129,7 +132,7 @@ export function Calendar() {
   const selectedDayData = selectedDateKey ? dailyData[selectedDateKey] : null;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Trading Calendar</h1>
@@ -197,9 +200,9 @@ export function Calendar() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Calendar Grid */}
-        <div className="col-span-3 glass-panel overflow-hidden flex flex-col">
+        <div className="md:col-span-3 glass-panel overflow-hidden flex flex-col">
           <div className="grid grid-cols-7 border-b border-border bg-surface-hover">
             {weekDays.map(day => (
               <div key={day} className="py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider border-r border-border last:border-r-0">
@@ -213,7 +216,7 @@ export function Calendar() {
         </div>
 
         {/* Daily Details Panel */}
-        <div className="col-span-1 glass-panel p-6 flex flex-col">
+        <div className="md:col-span-1 glass-panel p-6 flex flex-col">
           {selectedDate ? (
             <>
               <div className="mb-6">

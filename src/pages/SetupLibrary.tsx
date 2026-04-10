@@ -18,7 +18,7 @@ export function SetupLibrary() {
   });
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Setup Library</h1>
@@ -33,24 +33,24 @@ export function SetupLibrary() {
         </button>
       </div>
 
-      <div className="flex items-center gap-4 mb-8">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+        <div className="relative w-full md:flex-1 md:max-w-md">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input 
             type="text" 
             placeholder="Search setups..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+            className="w-full bg-surface border border-border rounded-lg pl-10 pr-4 py-2 text-base md:text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
           />
         </div>
-        <div className="flex bg-surface border border-border rounded-lg p-1">
+        <div className="flex bg-surface border border-border rounded-lg p-1 w-full md:w-auto overflow-x-auto shrink-0">
           {categories.map(cat => (
             <button 
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={cn(
-                "px-4 py-1.5 text-sm rounded transition-colors",
+                "px-4 py-2 md:py-1.5 text-sm rounded transition-colors whitespace-nowrap",
                 activeCategory === cat 
                   ? "bg-surface-hover text-text-primary shadow-sm" 
                   : "text-text-secondary hover:text-text-primary"
@@ -62,7 +62,7 @@ export function SetupLibrary() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredSetups.length > 0 ? (
           filteredSetups.map(setup => (
             <div key={setup.id} className="glass-panel p-0 overflow-hidden flex flex-col group cursor-pointer hover:border-accent/50 transition-colors">

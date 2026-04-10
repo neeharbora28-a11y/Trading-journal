@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Filter, ChevronDown, ArrowUpRight, ArrowDownRight, Image as ImageIcon, MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, filterTradesByDateRange } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useStore } from "@/store";
 import { toast } from "sonner";
@@ -8,7 +8,12 @@ import { toast } from "sonner";
 export function Journal() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"All" | "Wins" | "Losses">("All");
-  const trades = useStore(state => state.trades);
+  const allTrades = useStore(state => state.trades);
+  const selectedAccountId = useStore(state => state.selectedAccountId);
+  const selectedDateRange = useStore(state => state.selectedDateRange);
+  
+  const accountTrades = allTrades.filter(t => t.accountId === selectedAccountId);
+  const trades = filterTradesByDateRange(accountTrades, selectedDateRange);
 
   const filteredTrades = trades.filter(trade => {
     if (activeTab === "Wins") return trade.result > 0;
@@ -17,37 +22,37 @@ export function Journal() {
   });
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Trading Journal</h1>
           <p className="text-sm text-text-secondary">Review your past trades and lessons learned.</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 sm:pb-0">
           <button 
             onClick={() => toast.info("Filters modal coming soon!")}
-            className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition-colors whitespace-nowrap"
           >
             <Filter size={16} />
             Filters
           </button>
-          <div className="flex bg-surface border border-border rounded-lg p-1">
+          <div className="flex bg-surface border border-border rounded-lg p-1 shrink-0">
             <button 
               onClick={() => setActiveTab("All")}
-              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "All" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+              className={cn("px-4 py-1.5 text-sm rounded transition-colors", activeTab === "All" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
             >
               All
             </button>
             <button 
               onClick={() => setActiveTab("Wins")}
-              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "Wins" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+              className={cn("px-4 py-1.5 text-sm rounded transition-colors", activeTab === "Wins" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
             >
               Wins
             </button>
             <button 
               onClick={() => setActiveTab("Losses")}
-              className={cn("px-3 py-1 text-sm rounded transition-colors", activeTab === "Losses" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
+              className={cn("px-4 py-1.5 text-sm rounded transition-colors", activeTab === "Losses" ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary")}
             >
               Losses
             </button>
@@ -77,7 +82,7 @@ export function Journal() {
                   </span>
                 </div>
               </div>
-              <div className="text-xs text-text-muted">{trade.date}, {trade.entryTime}</div>
+              <div className="text-xs text-text-muted hidden sm:block">{trade.date}, {trade.entryTime}</div>
             </div>
 
             <div className="flex items-center justify-between ml-11">
@@ -118,13 +123,13 @@ export function Journal() {
                       {trade.notes}
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       {trade.hasScreenshot && (
-                        <button className="flex items-center gap-2 text-xs text-accent hover:text-indigo-400 transition-colors">
-                          <ImageIcon size={14} /> View Screenshot
+                        <button className="flex items-center gap-2 text-sm text-accent hover:text-indigo-400 transition-colors py-2 px-3 -ml-3">
+                          <ImageIcon size={16} /> View Screenshot
                         </button>
                       )}
-                      <button className="ml-auto text-xs text-text-muted hover:text-text-primary transition-colors">
+                      <button className="ml-auto text-sm text-text-muted hover:text-text-primary transition-colors py-2 px-3 -mr-3">
                         Edit Trade
                       </button>
                     </div>

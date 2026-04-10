@@ -7,7 +7,7 @@ import { toast } from "sonner";
 export function Psychology() {
   const saveDailyLog = useStore(state => state.saveDailyLog);
   const dailyLogs = useStore(state => state.dailyLogs);
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA');
   
   const [sliders, setSliders] = useState({
     confidence: 7,
@@ -43,7 +43,7 @@ export function Psychology() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Psychology</h1>
@@ -51,7 +51,7 @@ export function Psychology() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Behaviour Score */}
         <div className="glass-panel p-6 flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 rounded-full bg-accent-muted flex items-center justify-center text-accent mb-4">
@@ -65,7 +65,7 @@ export function Psychology() {
         </div>
 
         {/* AI Summary */}
-        <div className="glass-panel p-6 col-span-2 relative overflow-hidden">
+        <div className="glass-panel p-6 md:col-span-2 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
           <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-4 flex items-center gap-2">
             <Target size={16} className="text-accent" />
@@ -77,7 +77,7 @@ export function Psychology() {
         </div>
 
         {/* Mood Tracker */}
-        <div className="glass-panel p-6 col-span-2">
+        <div className="glass-panel p-6 md:col-span-2">
           <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">Daily Mood Tracker</h3>
           
           <div className="space-y-6">

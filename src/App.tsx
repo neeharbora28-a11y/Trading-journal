@@ -8,6 +8,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { BottomNav } from "./components/BottomNav";
 import { Dashboard } from "./pages/Dashboard";
 import { Journal } from "./pages/Journal";
 import { Analytics } from "./pages/Analytics";
@@ -42,12 +43,12 @@ export default function App() {
   return (
     <>
       <div className="min-h-screen bg-background flex">
-        <Sidebar />
+        <Sidebar className="hidden md:flex" />
         
-        <div className="flex-1 ml-64 flex flex-col min-h-screen">
+        <div className="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen pb-16 md:pb-0">
           <Topbar />
           
-          <main className="flex-1 overflow-y-auto pb-12">
+          <main className="flex-1 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -60,6 +61,8 @@ export default function App() {
             </Routes>
           </main>
         </div>
+        
+        <BottomNav className="md:hidden fixed bottom-0 left-0 right-0 z-50" />
       </div>
       <Toaster position="bottom-right" theme="dark" />
     </>

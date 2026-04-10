@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, Plus, Moon, Sun, ChevronDown, Check } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TradeEntryModal } from "./TradeEntryModal";
+import { AddAccountModal } from "./AddAccountModal";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { toast } from "sonner";
@@ -9,17 +10,22 @@ import { toast } from "sonner";
 export function Topbar() {
   const isModalOpen = useStore(state => state.isTradeModalOpen);
   const setIsModalOpen = useStore(state => state.setTradeModalOpen);
-  const selectedAccount = useStore(state => state.selectedAccount);
-  const setSelectedAccount = useStore(state => state.setSelectedAccount);
+  const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
+  
+  const accounts = useStore(state => state.accounts);
+  const selectedAccountId = useStore(state => state.selectedAccountId);
+  const setSelectedAccountId = useStore(state => state.setSelectedAccountId);
+  
   const selectedDateRange = useStore(state => state.selectedDateRange);
   const setSelectedDateRange = useStore(state => state.setSelectedDateRange);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const accounts = ["Main Account", "Prop Firm Challenge", "Crypto Portfolio"];
   const dateRanges = ["Today", "This Week", "This Month", "This Year", "All Time"];
 
-  const handleAccountChange = (account: string) => {
-    setSelectedAccount(account);
+  const currentAccount = accounts.find(a => a.id === selectedAccountId) || accounts[0];
+
+  const handleAccountChange = (accountId: string) => {
+    setSelectedAccountId(accountId);
   };
 
   const handleDateRangeChange = (range: string) => {
@@ -39,12 +45,12 @@ export function Topbar() {
 
   return (
     <>
-      <header className="h-16 border-b border-border bg-background flex items-center justify-between px-8 sticky top-0 z-10">
-        <div className="flex items-center gap-6">
+      <header className="h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
+        <div className="flex items-center gap-4 md:gap-6">
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-accent transition-colors outline-none">
-                {selectedAccount} <ChevronDown size={14} className="text-text-muted" />
+                {currentAccount?.name || "Select Account"} <ChevronDown size={14} className="text-text-muted" />
               </button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
@@ -55,17 +61,17 @@ export function Topbar() {
               >
                 {accounts.map(account => (
                   <DropdownMenu.Item 
-                    key={account}
-                    onClick={() => handleAccountChange(account)}
+                    key={account.id}
+                    onClick={() => handleAccountChange(account.id)}
                     className="flex items-center justify-between px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
                   >
-                    {account}
-                    {selectedAccount === account && <Check size={14} className="text-accent" />}
+                    {account.name}
+                    {selectedAccountId === account.id && <Check size={14} className="text-accent" />}
                   </DropdownMenu.Item>
                 ))}
                 <DropdownMenu.Separator className="h-px bg-border my-1" />
                 <DropdownMenu.Item 
-                  onClick={() => toast.info("Add New Account modal coming soon!")}
+                  onClick={() => setIsAddAccountOpen(true)}
                   className="px-3 py-2 text-sm text-accent hover:text-indigo-400 hover:bg-surface-hover rounded-md cursor-pointer outline-none transition-colors"
                 >
                   + Add New Account
@@ -74,18 +80,18 @@ export function Topbar() {
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
           
-          <div className="relative group">
+          <div className="relative group hidden sm:block">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" />
             <input 
               type="text" 
               placeholder="Search trades, pairs..." 
               onKeyDown={handleSearch}
-              className="bg-surface border border-border rounded-full pl-9 pr-4 py-1.5 text-sm w-64 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+              className="bg-surface border border-border rounded-full pl-9 pr-4 py-1.5 text-sm w-48 md:w-64 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button className="flex items-center gap-2 text-sm text-text-secondary bg-surface px-3 py-1.5 rounded-full border border-border hover:text-text-primary hover:border-accent/50 transition-colors outline-none">
@@ -122,7 +128,7 @@ export function Topbar() {
 
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-accent hover:bg-indigo-400 text-white px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition-colors shadow-lg shadow-accent/20"
+            className="hidden md:flex bg-accent hover:bg-indigo-400 text-white px-4 py-1.5 rounded-full text-sm font-medium items-center gap-2 transition-colors shadow-lg shadow-accent/20"
           >
             <Plus size={16} />
             Log Trade
@@ -131,6 +137,7 @@ export function Topbar() {
       </header>
 
       <TradeEntryModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AddAccountModal open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen} />
     </>
   );
 }

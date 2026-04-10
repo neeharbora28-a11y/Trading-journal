@@ -5,30 +5,18 @@ import {
   LineChart, Line
 } from "recharts";
 import { BarChart as BarChartIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, filterTradesByDateRange } from "@/lib/utils";
 import { useStore } from "@/store";
 
 const COLORS = ['var(--color-accent)', '#818cf8', '#a5b4fc', '#c7d2fe'];
 
 export function Analytics() {
-  const [timeRange, setTimeRange] = useState("All Time");
-  const trades = useStore(state => state.trades);
-
-  const filteredTrades = useMemo(() => {
-    const now = new Date();
-    return trades.filter(t => {
-      if (timeRange === "All Time") return true;
-      const tradeDate = new Date(t.date);
-      if (timeRange === "This Month") {
-        return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === now.getFullYear();
-      }
-      if (timeRange === "Last Month") {
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return tradeDate.getMonth() === lastMonth.getMonth() && tradeDate.getFullYear() === lastMonth.getFullYear();
-      }
-      return true;
-    });
-  }, [trades, timeRange]);
+  const allTrades = useStore(state => state.trades);
+  const selectedAccountId = useStore(state => state.selectedAccountId);
+  const selectedDateRange = useStore(state => state.selectedDateRange);
+  
+  const accountTrades = allTrades.filter(t => t.accountId === selectedAccountId);
+  const filteredTrades = filterTradesByDateRange(accountTrades, selectedDateRange);
 
   const pairPerformance = useMemo(() => {
     const data: Record<string, { name: string, win: number, loss: number }> = {};
@@ -69,20 +57,6 @@ export function Analytics() {
             <h1 className="text-2xl font-bold text-text-primary">Analytics</h1>
             <p className="text-sm text-text-secondary">Deep dive into your trading performance.</p>
           </div>
-          <div className="flex bg-surface border border-border rounded-lg p-1">
-            {["This Month", "Last Month", "All Time"].map(range => (
-              <button 
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={cn(
-                  "px-3 py-1 text-sm rounded transition-colors",
-                  timeRange === range ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
-                )}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
         </div>
         
         <div className="h-[60vh] flex flex-col items-center justify-center text-center glass-panel">
@@ -99,33 +73,19 @@ export function Analytics() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Analytics</h1>
           <p className="text-sm text-text-secondary">Deep dive into your trading performance.</p>
         </div>
-        <div className="flex bg-surface border border-border rounded-lg p-1">
-          {["This Month", "Last Month", "All Time"].map(range => (
-            <button 
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={cn(
-                "px-3 py-1 text-sm rounded transition-colors",
-                timeRange === range ? "bg-surface-hover text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              {range}
-            </button>
-          ))}
-        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Pair Performance */}
         <div className="glass-panel p-6">
           <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">P/L by Pair</h3>
-          <div className="h-64">
+          <div className="h-40 sm:h-52 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pairPerformance} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
@@ -145,7 +105,7 @@ export function Analytics() {
         {/* Setup Performance */}
         <div className="glass-panel p-6">
           <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">Setup Distribution</h3>
-          <div className="h-64 flex items-center">
+          <div className="h-40 sm:h-52 md:h-64 flex flex-col md:flex-row items-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -167,7 +127,7 @@ export function Analytics() {
                 />
               </PieChart>
             </ResponsiveContainer>
-            <div className="w-1/2 space-y-3">
+            <div className="w-full md:w-1/2 space-y-3 mt-4 md:mt-0">
               {setupPerformance.map((setup, i) => (
                 <div key={setup.name} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
@@ -182,9 +142,9 @@ export function Analytics() {
         </div>
 
         {/* Psychology vs Results */}
-        <div className="glass-panel p-6 col-span-2">
+        <div className="glass-panel p-6 md:col-span-2">
           <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">Psychology vs P/L</h3>
-          <div className="h-64">
+          <div className="h-40 sm:h-52 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={emotionPerformance} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
