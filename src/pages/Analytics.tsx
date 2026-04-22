@@ -73,68 +73,108 @@ export function Analytics() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Analytics</h1>
-          <p className="text-sm text-text-secondary">Deep dive into your trading performance.</p>
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">Analytics Dashboard</h1>
+          <p className="text-sm text-text-secondary font-medium italic">Uncover the patterns behind your P/L.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Pair Performance */}
-        <div className="glass-panel p-6">
-          <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">P/L by Pair</h3>
-          <div className="h-40 sm:h-52 md:h-64">
+        <div className="glass-panel p-5 md:p-6 shadow-sm">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-6 border-b border-border pb-2 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+            P/L by Asset Pair
+          </h3>
+          <div className="h-48 sm:h-56 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={pairPerformance} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="name" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val/1000}k`} />
-                <Tooltip 
-                  cursor={{fill: 'var(--color-surface-hover)'}}
-                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
+              <BarChart data={pairPerformance} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} opacity={0.5} />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="var(--color-text-muted)" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  interval={0}
+                  tick={{ fill: 'var(--color-text-secondary)' }}
                 />
-                <Bar dataKey="win" stackId="a" fill="var(--color-profit)" radius={[0, 0, 4, 4]} barSize={32} />
-                <Bar dataKey="loss" stackId="a" fill="var(--color-loss)" radius={[4, 4, 0, 0]} barSize={32} />
+                <YAxis 
+                  stroke="var(--color-text-muted)" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => `$${val > 999 ? (val/1000).toFixed(0) + 'k' : val}`}
+                  tick={{ fill: 'var(--color-text-secondary)' }}
+                />
+                <Tooltip 
+                  cursor={{fill: 'var(--color-surface-hover)', opacity: 0.4}}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--color-surface)', 
+                    borderColor: 'var(--color-border)', 
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    padding: '8px 12px'
+                  }}
+                  itemStyle={{ padding: '2px 0' }}
+                  trigger="click"
+                />
+                <Bar dataKey="win" stackId="a" fill="var(--color-profit)" radius={[0, 0, 4, 4]} barSize={24} minPointSize={2} />
+                <Bar dataKey="loss" stackId="a" fill="var(--color-loss)" radius={[4, 4, 0, 0]} barSize={24} minPointSize={2} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Setup Performance */}
-        <div className="glass-panel p-6">
-          <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">Setup Distribution</h3>
-          <div className="h-40 sm:h-52 md:h-64 flex flex-col md:flex-row items-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={setupPerformance}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {setupPerformance.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
-                  itemStyle={{ color: 'var(--color-text-primary)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="w-full md:w-1/2 space-y-3 mt-4 md:mt-0">
+        <div className="glass-panel p-5 md:p-6 shadow-sm">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-6 border-b border-border pb-2 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+            Setup Distribution
+          </h3>
+          <div className="flex flex-col gap-6">
+            <div className="h-48 sm:h-56 md:h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={setupPerformance}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="60%"
+                    outerRadius="85%"
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {setupPerformance.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={8} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-surface)', 
+                      borderColor: 'var(--color-border)', 
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                    trigger="click"
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
               {setupPerformance.map((setup, i) => (
-                <div key={setup.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                    <span className="text-text-secondary">{setup.name}</span>
+                <div key={setup.name} className="flex items-center justify-between text-xs p-2 rounded-lg bg-surface-hover/30 border border-border/40">
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                    <span className="text-text-secondary truncate font-medium">{setup.name}</span>
                   </div>
-                  <span className="font-medium text-text-primary">{setup.value}%</span>
+                  <span className="font-bold text-text-primary ml-2">{setup.value}%</span>
                 </div>
               ))}
             </div>
@@ -142,21 +182,49 @@ export function Analytics() {
         </div>
 
         {/* Psychology vs Results */}
-        <div className="glass-panel p-6 md:col-span-2">
-          <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider mb-6">Psychology vs P/L</h3>
-          <div className="h-40 sm:h-52 md:h-64">
+        <div className="glass-panel p-5 md:p-6 md:col-span-2 shadow-sm">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-6 border-b border-border pb-2 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+            Psychological Edge vs P/L
+          </h3>
+          <div className="h-56 sm:h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={emotionPerformance} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="emotion" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                <Tooltip 
-                  cursor={{fill: 'var(--color-surface-hover)'}}
-                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
+              <BarChart data={emotionPerformance} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} opacity={0.5} />
+                <XAxis 
+                  dataKey="emotion" 
+                  stroke="var(--color-text-muted)" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tick={{ fill: 'var(--color-text-secondary)' }}
                 />
-                <Bar dataKey="pl" radius={[4, 4, 0, 0]} barSize={48}>
+                <YAxis 
+                  stroke="var(--color-text-muted)" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => `$${val}`}
+                  tick={{ fill: 'var(--color-text-secondary)' }}
+                />
+                <Tooltip 
+                  cursor={{fill: 'var(--color-surface-hover)', opacity: 0.4}}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--color-surface)', 
+                    borderColor: 'var(--color-border)', 
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}
+                  trigger="click"
+                />
+                <Bar dataKey="pl" radius={[6, 6, 6, 6]} barSize={40}>
                   {emotionPerformance.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.pl > 0 ? 'var(--color-profit)' : 'var(--color-loss)'} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.pl > 0 ? 'var(--color-profit)' : 'var(--color-loss)'}
+                      opacity={0.9} 
+                    />
                   ))}
                 </Bar>
               </BarChart>

@@ -20,7 +20,8 @@ export interface Trade {
   rr: string;
   emotion: string;
   notes: string;
-  hasScreenshot: boolean;
+  aiInsight?: string;
+  screenshot?: string;
   timestamp: number;
 }
 
@@ -50,17 +51,19 @@ interface AppState {
   setups: Setup[];
   dailyLogs: DailyLog[];
   isTradeModalOpen: boolean;
+  isQuickLogOpen: boolean;
   selectedAccountId: string;
   selectedDateRange: string;
   isLoading: boolean;
   addAccount: (account: Omit<Account, 'id' | 'createdAt'>) => void;
   deleteAccount: (id: string) => void;
-  addTrade: (trade: Omit<Trade, 'id'>) => void;
+  addTrade: (trade: Omit<Trade, 'id'> & { id?: string }) => string;
   updateTrade: (id: string, trade: Partial<Trade>) => void;
   deleteTrade: (id: string) => void;
   addSetup: (setup: Omit<Setup, 'id'>) => void;
   saveDailyLog: (log: DailyLog) => void;
   setTradeModalOpen: (isOpen: boolean) => void;
+  setQuickLogOpen: (isOpen: boolean) => void;
   setSelectedAccountId: (accountId: string) => void;
   setSelectedDateRange: (range: string) => void;
   setIsLoading: (loading: boolean) => void;
@@ -125,6 +128,7 @@ export const useStore = create<AppState>()(
       setups: initialSetups,
       dailyLogs: [],
       isTradeModalOpen: false,
+      isQuickLogOpen: false,
       selectedAccountId: "default-account",
       selectedDateRange: "This Week",
       isLoading: false,
@@ -150,9 +154,14 @@ export const useStore = create<AppState>()(
         };
       }),
 
-      addTrade: (trade) => set((state) => ({ 
-        trades: [{ ...trade, id: Date.now().toString() }, ...state.trades] 
-      })),
+      addTrade: (trade) => {
+        const id = trade.id || Date.now().toString();
+        const newTrade = { ...trade, id };
+        set((state) => ({ 
+          trades: [newTrade as Trade, ...state.trades] 
+        }));
+        return id;
+      },
       
       updateTrade: (id, updatedTrade) => set((state) => ({
         trades: state.trades.map(t => t.id === id ? { ...t, ...updatedTrade } : t)
@@ -177,6 +186,7 @@ export const useStore = create<AppState>()(
       }),
 
       setTradeModalOpen: (isOpen) => set({ isTradeModalOpen: isOpen }),
+      setQuickLogOpen: (isOpen) => set({ isQuickLogOpen: isOpen }),
       setSelectedAccountId: (accountId) => set({ selectedAccountId: accountId }),
       setSelectedDateRange: (range) => set({ selectedDateRange: range }),
       setIsLoading: (loading) => set({ isLoading: loading }),

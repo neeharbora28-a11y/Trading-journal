@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Upload, Calculator, ArrowRight, Check, ChevronDown } from "lucide-react";
+import { X, Upload, Calculator, ArrowRight, Check, ChevronDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useStore } from "@/store";
 import { toast } from "sonner";
+import { generateTradeReflection } from "../lib/ai";
 
 export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const addTrade = useStore(state => state.addTrade);
+  const updateTrade = useStore(state => state.updateTrade);
   const accounts = useStore(state => state.accounts);
   const selectedAccountId = useStore(state => state.selectedAccountId);
   const allTrades = useStore(state => state.trades);
@@ -28,11 +30,37 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
     positionSize: '',
     realizedPnL: '',
     emotion: '',
-    lesson: ''
+    lesson: '',
+    screenshot: '' as string
   });
+
+  const [isRiskCalcExpanded, setIsRiskCalcExpanded] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateForm = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size exceeds 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateForm('screenshot', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateForm('screenshot', '');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const canProceed = () => {
@@ -52,7 +80,7 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
     const rrValue = Math.abs((tp - entry) / (entry - sl));
     const result = isNaN(realizedPnL) ? 0 : realizedPnL;
 
-    addTrade({
+    const tradeData = {
       accountId: selectedAccountId,
       pair: formData.pair,
       direction: formData.direction!,
@@ -63,17 +91,30 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
       rr: `1:${rrValue.toFixed(1)}`,
       emotion: formData.emotion,
       notes: formData.lesson,
-      hasScreenshot: false,
+      screenshot: formData.screenshot || undefined,
       timestamp: Date.now(),
-    });
+    };
+
+    const newTradeId = addTrade(tradeData);
 
     toast.success("Trade saved successfully!");
     onOpenChange(false);
+
+    // AI Reflection
+    (async () => {
+      const insight = await generateTradeReflection({ ...tradeData, id: newTradeId });
+      updateTrade(newTradeId, { aiInsight: insight });
+      toast.info("AI Coach Reflection", {
+        description: insight,
+        duration: 8000,
+      });
+    })();
+
     // Reset form after modal closes
     setTimeout(() => {
       setStep(1);
       setFormData({
-        pair: '', direction: null, setupType: '', entryPrice: '', stopLoss: '', takeProfit: '', positionSize: '', realizedPnL: '', emotion: '', lesson: ''
+        pair: '', direction: null, setupType: '', entryPrice: '', stopLoss: '', takeProfit: '', positionSize: '', realizedPnL: '', emotion: '', lesson: '', screenshot: ''
       });
     }, 300);
   };
@@ -310,13 +351,51 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
                   >
                     <h3 className="text-lg font-medium text-text-primary">Screenshot</h3>
                     
-                    <div className="border-2 border-dashed border-border rounded-xl bg-background flex flex-col items-center justify-center py-12 hover:border-accent/50 hover:bg-accent-muted/10 transition-colors cursor-pointer group">
-                      <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-text-muted group-hover:text-accent mb-4 transition-colors">
-                        <Upload size={24} />
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/png, image/jpeg, image/gif"
+                      className="hidden"
+                    />
+
+                    {formData.screenshot ? (
+                      <div className="relative rounded-xl overflow-hidden group border border-border aspect-video bg-background">
+                        <img 
+                          src={formData.screenshot} 
+                          alt="Trade Screenshot" 
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-contain" 
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                          <button 
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                          >
+                            Replace
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="p-2 bg-loss text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-text-primary font-medium mb-1">Click to upload or drag and drop</p>
-                      <p className="text-sm text-text-muted">SVG, PNG, JPG or GIF (max. 5MB)</p>
-                    </div>
+                    ) : (
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl bg-background flex flex-col items-center justify-center py-12 hover:border-accent/50 hover:bg-accent-muted/10 transition-colors cursor-pointer group"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-text-muted group-hover:text-accent mb-4 transition-colors">
+                          <Upload size={24} />
+                        </div>
+                        <p className="text-text-primary font-medium mb-1">Click to upload or drag and drop</p>
+                        <p className="text-sm text-text-muted">PNG, JPG or GIF (max. 5MB)</p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
@@ -397,16 +476,71 @@ export function TradeEntryModal({ open, onOpenChange }: { open: boolean, onOpenC
             </div>
           </div>
 
-          {/* Mobile Risk Strip */}
-          <div className="md:hidden border-t border-border p-4 flex justify-between items-center bg-surface-hover text-sm">
-            <div className="flex flex-col">
-              <span className="text-xs text-text-muted">Risk Amount</span>
-              <span className="font-mono text-loss font-medium">-${riskAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-xs text-text-muted">Suggested Lots</span>
-              <span className="font-mono text-accent font-bold">{lotSize > 0 ? lotSize.toFixed(2) : '0.00'}</span>
-            </div>
+          {/* Mobile Risk Calculator Accordion */}
+          <div className="md:hidden border-t border-border bg-surface shrink-0">
+            <button 
+              onClick={() => setIsRiskCalcExpanded(!isRiskCalcExpanded)}
+              className="w-full p-4 flex justify-between items-center bg-surface-hover hover:bg-surface-active transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                  <Calculator size={18} />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Risk Metric</div>
+                  <div className="text-sm font-bold text-text-primary">
+                    {lotSize > 0 ? lotSize.toFixed(2) : '0.00'} <span className="text-text-muted font-normal">Lots</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Risk</div>
+                  <div className="text-xs font-mono text-loss">-${riskAmount.toFixed(2)}</div>
+                </div>
+                <motion.div
+                  animate={{ rotate: isRiskCalcExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown size={18} className="text-text-muted" />
+                </motion.div>
+              </div>
+            </button>
+
+            <motion.div
+              initial={false}
+              animate={{ 
+                height: isRiskCalcExpanded ? "auto" : 0,
+                opacity: isRiskCalcExpanded ? 1 : 0
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden bg-background"
+            >
+              <div className="p-5 space-y-4 text-sm border-t border-border/50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="glass-panel p-3">
+                    <div className="text-[10px] text-text-muted uppercase mb-1">Account Balance</div>
+                    <div className="font-mono text-text-primary">${accountBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                  </div>
+                  <div className="glass-panel p-3">
+                    <div className="text-[10px] text-text-muted uppercase mb-1">Stop Loss (Pips)</div>
+                    <div className="font-mono text-text-primary">{pips > 0 ? pips.toFixed(1) : '0.0'}</div>
+                  </div>
+                  <div className="glass-panel p-3">
+                    <div className="text-[10px] text-text-muted uppercase mb-1">Risk %</div>
+                    <div className="font-mono text-text-primary">1.0%</div>
+                  </div>
+                  <div className="glass-panel p-3">
+                    <div className="text-[10px] text-text-muted uppercase mb-1">RR Ratio</div>
+                    <div className="font-mono text-profit">1:{rrRatio > 0 ? rrRatio.toFixed(2) : '0.00'}</div>
+                  </div>
+                </div>
+                <div className="glass-panel p-3 bg-profit/5 border-profit/20">
+                  <div className="text-[10px] text-text-muted uppercase mb-1">Potential Take Profit</div>
+                  <div className="text-lg font-bold text-profit font-mono">+${potentialProfit > 0 ? potentialProfit.toFixed(2) : '0.00'}</div>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
           {/* Desktop Risk Calculator Sidebar */}

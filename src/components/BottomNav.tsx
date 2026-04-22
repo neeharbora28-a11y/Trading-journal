@@ -1,50 +1,53 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, BookOpen, PlusCircle, BarChart2, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, BookOpen, PlusCircle, BarChart2, Sparkles, Zap } from "lucide-react";
 import { useStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
 
 export function BottomNav({ className }: { className?: string }) {
-  const setTradeModalOpen = useStore(state => state.setTradeModalOpen);
+  const setQuickLogOpen = useStore(state => state.setQuickLogOpen);
 
   const navItems = [
-    { to: "/", icon: LayoutDashboard, label: "Home" },
+    { to: "/dashboard", icon: LayoutDashboard, label: "Home" },
     { to: "/journal", icon: BookOpen, label: "Journal" },
   ];
 
   const navItemsRight = [
     { to: "/analytics", icon: BarChart2, label: "Charts" },
-    { to: "/calendar", icon: MoreHorizontal, label: "More" }, // Using calendar as 'more' for now, or could link to a menu
+    { to: "/aicoach", icon: Sparkles, label: "AI" },
   ];
 
   return (
-    <div className={cn("bg-surface border-t border-border flex items-center justify-around px-2 py-2 safe-area-pb", className)}>
+    <nav className={cn("bg-surface/80 backdrop-blur-xl border-t border-border flex items-center justify-around px-1 h-20 safe-area-pb", className)}>
       {navItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           className={({ isActive }) =>
             cn(
-              "flex flex-col items-center gap-1 p-2 min-w-[64px] rounded-lg transition-colors",
-              isActive ? "text-accent" : "text-text-secondary hover:text-text-primary"
+              "flex flex-col items-center justify-center gap-1 min-w-[72px] h-full transition-all tap-target-48",
+              isActive ? "text-accent" : "text-text-muted hover:text-text-primary"
             )
           }
         >
-          <item.icon size={20} />
-          <span className="text-[10px] font-medium">{item.label}</span>
+          <item.icon size={22} className={cn("transition-transform", "active:scale-90")} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
         </NavLink>
       ))}
 
-      <button
-        onClick={() => setTradeModalOpen(true)}
-        className="flex flex-col items-center gap-1 p-2 min-w-[64px] text-accent hover:text-indigo-400 transition-colors -mt-4"
-      >
-        <div className="bg-surface rounded-full p-1">
-          <div className="bg-accent text-white rounded-full p-2 shadow-lg shadow-accent/20">
-            <PlusCircle size={24} />
+      <div className="relative h-full flex items-center justify-center -mt-6">
+        <button
+          onClick={() => setQuickLogOpen(true)}
+          className="flex flex-col items-center justify-center gap-1 group active:scale-90 transition-transform tap-target-48"
+        >
+          <div className="bg-surface rounded-full p-1.5 shadow-2xl">
+            <div className="bg-accent text-white rounded-2xl p-3 shadow-xl shadow-accent/40 flex items-center justify-center group-hover:bg-accent/90">
+              <Zap size={24} className="fill-current" />
+            </div>
           </div>
-        </div>
-        <span className="text-[10px] font-medium">Log</span>
-      </button>
+          <span className="text-[9px] font-black uppercase text-accent tracking-tighter mt-1">Quick Log</span>
+        </button>
+      </div>
 
       {navItemsRight.map((item) => (
         <NavLink
@@ -52,15 +55,15 @@ export function BottomNav({ className }: { className?: string }) {
           to={item.to}
           className={({ isActive }) =>
             cn(
-              "flex flex-col items-center gap-1 p-2 min-w-[64px] rounded-lg transition-colors",
-              isActive ? "text-accent" : "text-text-secondary hover:text-text-primary"
+              "flex flex-col items-center justify-center gap-1 min-w-[72px] h-full transition-all tap-target-48",
+              isActive ? "text-accent" : "text-text-muted hover:text-text-primary"
             )
           }
         >
-          <item.icon size={20} />
-          <span className="text-[10px] font-medium">{item.label}</span>
+          <item.icon size={22} className={cn("transition-transform", "active:scale-90")} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
         </NavLink>
       ))}
-    </div>
+    </nav>
   );
 }

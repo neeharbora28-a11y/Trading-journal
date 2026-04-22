@@ -71,4 +71,29 @@
   .glass-panel {
     @apply bg-surface/80 backdrop-blur-md border border-border rounded-xl shadow-sm;
   }
+  
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-pl {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-area-pr {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .tap-target-48 {
+    @apply min-h-[48px] min-w-[48px] flex items-center justify-center;
+  }
+}
+
+/* Global button and interactive element scale effect */
+button:active, 
+a:active, 
+[role="button"]:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease-in-out;
 }
